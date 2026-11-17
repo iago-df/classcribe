@@ -28,7 +28,7 @@
 
 ## Why
 
-A lecture lasts 50 minutes. Your notes? Five lines.
+A lecture lasts 60 minutes. Your notes? Five lines.
 
 You can either listen or write, not both. Classcribe records the lecture, transcribes it and writes proper notes from it, using the syllabus you uploaded so concepts are named the way your course names them. It also catches the moments that matter, like *"this will be on the exam"* or *"exercises 4 to 7 for Thursday"*, and puts them in your agenda with a link to the exact second it was said.
 
