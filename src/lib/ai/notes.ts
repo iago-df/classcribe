@@ -24,7 +24,7 @@ const AlertSchema = z.object({
   due: z.string().nullable().describe('Due or event date as YYYY-MM-DD, or null if none was given.'),
 });
 
-const NotesSchema = z.object({
+export const NotesSchema = z.object({
   title: z.string().describe('Short topic of the lecture, max 6 words.'),
   unit: z.string().nullable().describe("Exactly one of the student's unit names that this lecture belongs to, or null."),
   blocks: z.array(BlockSchema),
@@ -39,6 +39,21 @@ export interface NotesResult {
 }
 
 export class RefusalError extends Error {}
+
+/** the schema's flat blocks, as the note blocks the app shows */
+export function toNotesResult(parsed: z.infer<typeof NotesSchema>): NotesResult {
+  const blocks: NoteBlock[] = parsed.blocks.map((b) => {
+    switch (b.type) {
+      case 'bullets':
+        return { type: 'bullets', items: b.items };
+      case 'exam':
+        return { type: 'exam', text: b.text, at: b.at };
+      default:
+        return { type: b.type, text: b.text };
+    }
+  });
+  return { title: parsed.title, unit: parsed.unit, blocks, alerts: parsed.alerts };
+}
 
 const SYSTEM = `You are Classcribe, an assistant that turns recorded university and school lectures into study notes.
 
@@ -137,18 +152,5 @@ export async function writeNotes(opts: {
   if (msg.stop_reason === 'refusal') throw new RefusalError(msg.stop_details?.explanation ?? 'refusal');
 
   const text = msg.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
-  const parsed = NotesSchema.parse(JSON.parse(text));
-
-  const blocks: NoteBlock[] = parsed.blocks.map((b) => {
-    switch (b.type) {
-      case 'bullets':
-        return { type: 'bullets', items: b.items };
-      case 'exam':
-        return { type: 'exam', text: b.text, at: b.at };
-      default:
-        return { type: b.type, text: b.text };
-    }
-  });
-
-  return { title: parsed.title, unit: parsed.unit, blocks, alerts: parsed.alerts, usedSyllabus: docs.length > 0 };
+  return { ...toNotesResult(NotesSchema.parse(JSON.parse(text))), usedSyllabus: docs.length > 0 };
 }
