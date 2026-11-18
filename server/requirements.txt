@@ -1,0 +1,3 @@
+faster-whisper>=1.2,<2
+# newer versions dropped an option faster-whisper needs to open audio
+av>=14,<17
