@@ -1,8 +1,5 @@
 import { type ReactNode } from 'react';
 import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -177,21 +174,7 @@ export function Row({
   );
 }
 
-/** bottom sheet: dim overlay + white rounded panel, like the save sheet in the promo */
-export function Sheet({ visible, onClose, children }: { visible: boolean; onClose: () => void; children: ReactNode }) {
-  const insets = useSafeAreaInsets();
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <Pressable style={s.dim} onPress={onClose} />
-        <View style={[s.sheet, { paddingBottom: insets.bottom + 22 }]}>
-          <View style={s.handle} />
-          {children}
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
+export { Sheet, SheetScreen, useSheetClose } from './Sheet';
 
 export const Empty = ({ title, hint, children }: { title: string; hint?: string; children?: ReactNode }) => (
   <View style={s.empty}>
@@ -245,19 +228,5 @@ export const s = StyleSheet.create({
     transform: [{ rotate: '-45deg' }, { translateY: -1 }],
   },
   em: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: '#d0d0cd' },
-  dim: { ...StyleSheet.absoluteFill, backgroundColor: colors.dim },
-  sheet: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 34,
-    borderTopRightRadius: 34,
-    paddingTop: 14,
-    paddingHorizontal: 26,
-    maxHeight: '88%',
-  },
-  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#d8d8d5', alignSelf: 'center', marginBottom: 20 },
   empty: { alignItems: 'center', gap: 10, paddingVertical: 48, paddingHorizontal: 30 },
 });
