@@ -149,6 +149,7 @@ const en = {
     practice: 'Practice',
     practiceTag: 'P',
     delete: 'Remove from schedule',
+    deleteMsg: 'The class leaves your schedule. The subject, its lectures and notes stay.',
     invalid: 'Pick a subject and make sure it ends after it starts.',
   },
   days: { short: ['M', 'T', 'W', 'T', 'F'], long: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] },
