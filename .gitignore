@@ -48,3 +48,8 @@ promo-video/
 # editor / agent local config
 .claude/
 .vscode/
+
+# builds
+*.apk
+*.aab
+build-*.log

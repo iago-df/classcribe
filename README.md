@@ -20,11 +20,33 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/iago-df/classcribe/releases/latest/download/Classcribe.apk"><b>⬇ Download for Android</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/iago-df/classcribe/releases/download/v0.1.0/Classcribe-promo.mp4">▶ Watch the promo video</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/iago-df/classcribe/releases/download/v0.1.0/Classcribe-promo.mp4"><img src="docs/teaser.webp" width="860" alt="Classcribe promo video"></a><br>
+  <sub>▶ <a href="https://github.com/iago-df/classcribe/releases/download/v0.1.0/Classcribe-promo.mp4">Watch the full promo video (45 s, with sound)</a></sub>
+</p>
+
+<p align="center">
   <img src="docs/screens.png" width="900" alt="Classcribe screens">
 </p>
 
 > [!NOTE]
-> The screenshots use sample data. The app comes in English (default) and Spanish; switch it in settings.
+> The video and screenshots use sample data. The app comes in English (default) and Spanish; switch it in settings.
+
+## Install on Android
+
+No building needed. Android 7.0 or newer.
+
+1. On your phone, download **[Classcribe.apk](https://github.com/iago-df/classcribe/releases/latest/download/Classcribe.apk)** (it is also on the [Releases](https://github.com/iago-df/classcribe/releases) page).
+2. Open the file. If Android asks, allow your browser or file manager to **install unknown apps**.
+3. If Play Protect says the app is not recognised, tap **More details → Install anyway**. It says that about any app that does not come from the Play Store.
+4. Open Classcribe, tap the gear on the Subjects screen and add your [API keys](#api-keys).
+
+Each release lists the SHA-256 of the APK, so you can check that the file you downloaded is the original. There is no iPhone build to download; you can build it yourself on a Mac (see [Build from source](#build-from-source)).
 
 ## Why
 
@@ -96,28 +118,36 @@ You can either listen or write, not both. Classcribe records the lecture, transc
 - **Whisper** (`whisper-1`) is used because it returns segment timestamps. That is what lets every alert and exam callout point to the exact second.
 - **Claude** gets the transcript and the syllabus in one request and answers with a strict JSON schema (structured outputs), so the app never has to guess what came back. The syllabus is cached between lectures of the same subject.
 - Alerts are only created when the professor says something explicitly; the prompt tells the model to leave anything doubtful out.
-- A 50 minute lecture is about 12 MB, under Whisper's 25 MB upload limit.
+- A 60 minute lecture is about 14 MB, under Whisper's 25 MB upload limit.
 
-## Getting started
+## Build from source
 
-You need Node 20+ and either a phone with a development build or an emulator.
+Only if you want to run or change the code. You need Node 20+, plus Android Studio for Android or Xcode on a Mac for iOS.
 
 ```bash
 git clone https://github.com/iago-df/classcribe.git
 cd classcribe
 npm install
-npx expo start
+npx expo run:android   # or, on a Mac: npx expo run:ios
 ```
 
-Recording with the screen off needs native modules, so use a development build rather than Expo Go:
+`run:android` builds the native app and installs it on a phone connected by USB or on an emulator. The first build takes a while. After that, `npx expo start` is enough while you only change the TypeScript code. Expo Go does not work, because recording with the screen off needs native modules.
 
-```bash
-npx expo run:android   # or: npx expo run:ios
-```
+`npx expo start --web` opens the app in the browser. It is handy to look around the UI, but recording and secure storage only work on a phone.
 
-The web build (`npx expo start --web`) is handy to look around the UI.
+> [!WARNING]
+> **Building on Windows.** React Native compiles C++ code with very long file paths, and the `ninja` that comes with the Android SDK's CMake 3.22.1 can't handle paths over 260 characters. The build then stops with `ninja: error: mkdir(...): No such file or directory`. macOS and Linux are not affected. To fix it:
+>
+> 1. Clone the repo into a short folder, such as `C:\cb`.
+> 2. Install a newer ninja: `pip install ninja` (1.12 or newer).
+> 3. Copy `%LOCALAPPDATA%\Android\Sdk\cmake\3.22.1` somewhere, and replace `bin\ninja.exe` in the copy with the new one.
+> 4. Point the build at the copy in `android\local.properties` (the `android` folder appears after the first `npx expo run:android`):
+>    ```properties
+>    cmake.dir=C\:/path/to/the/cmake-copy
+>    ```
+> 5. Run `npx expo run:android` again.
 
-### API keys
+## API keys
 
 Open **Settings** (the gear on the Subjects screen) and paste:
 
