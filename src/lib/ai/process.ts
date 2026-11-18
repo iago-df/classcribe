@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { useStore, uid } from '../../store';
 import { translate } from '../../i18n';
 import { getKey } from '../keys';
-import { fileSize } from '../files';
+import { fileSize, recordingUri } from '../files';
 import { MAX_UPLOAD, TranscriptionError, transcribe } from './transcribe';
 import { RefusalError, writeNotes } from './notes';
 import type { Alert } from '../../types';
@@ -27,7 +27,9 @@ export async function processLecture(lectureId: string) {
 
     const [anthropicKey, openaiKey] = await Promise.all([getKey('anthropic_api_key'), getKey('openai_api_key')]);
     if (!anthropicKey || !openaiKey) return fail(translate(lang, 'errors.noKeys'));
-    if (fileSize(lecture.audioUri) > MAX_UPLOAD) return fail(translate(lang, 'errors.tooLarge'));
+    const audioUri = recordingUri(lecture.id, lecture.audioUri);
+    if (audioUri !== lecture.audioUri) update({ audioUri });
+    if (fileSize(audioUri) > MAX_UPLOAD) return fail(translate(lang, 'errors.tooLarge'));
 
     // 1. transcription (skipped on retry if we already have it)
     let segments = lecture.transcript;
@@ -39,7 +41,7 @@ export async function processLecture(lectureId: string) {
         update({ progress: p + (0.4 - p) * 0.04 });
       }, 1000);
       try {
-        segments = await transcribe(lecture.audioUri, openaiKey);
+        segments = await transcribe(audioUri, openaiKey);
       } catch (e) {
         const detail = e instanceof TranscriptionError ? e.message : String(e);
         return fail(translate(lang, 'errors.transcription', { detail }));

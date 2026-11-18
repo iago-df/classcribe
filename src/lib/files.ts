@@ -15,7 +15,21 @@ export async function keepRecording(uri: string, id: string) {
   const src = new File(uri);
   const dst = new File(dir('recordings'), `${id}${src.extension || '.m4a'}`);
   await src.move(dst);
-  return src.uri;
+  return dst.uri;
+}
+
+/**
+ * where a lecture's audio really is. Early builds saved the old cache path after moving the file,
+ * so fall back to documents/recordings/<id>.m4a when the stored path is gone.
+ */
+export function recordingUri(id: string, stored: string) {
+  if (isWeb || !stored) return stored;
+  try {
+    if (new File(stored).exists) return stored;
+    const moved = new File(new Directory(Paths.document, 'recordings'), `${id}.m4a`);
+    if (moved.exists) return moved.uri;
+  } catch {}
+  return stored;
 }
 
 export async function keepSyllabusFile(uri: string, id: string, name: string) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert as RNAlert, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
 import { useStore } from '../../store';
@@ -7,7 +7,8 @@ import { useT } from '../../i18n';
 import { colors } from '../../theme';
 import { clock, shortDate } from '../../lib/time';
 import { processLecture } from '../../lib/ai/process';
-import { removeFile } from '../../lib/files';
+import { recordingUri, removeFile } from '../../lib/files';
+import { confirm } from '../../lib/confirm';
 import DotMatrix from '../../components/DotMatrix';
 import ProcessingPill from '../../components/ProcessingPill';
 import { PauseIcon, PlayIcon, SkipIcon } from '../../components/icons';
@@ -26,8 +27,14 @@ export default function LectureScreen() {
   const removeLecture = useStore((s) => s.removeLecture);
   const [tab, setTab] = useState<Tab>(at ? 'audio' : 'notes');
 
-  const player = useAudioPlayer(lecture?.audioUri ?? null, { updateInterval: 250 });
+  // resolved once: the player must not change source (or be touched) while the screen goes away
+  const [audioUri] = useState(() => (lecture ? recordingUri(lecture.id, lecture.audioUri) : null));
+  const player = useAudioPlayer(audioUri, { updateInterval: 250 });
   const status = useAudioPlayerStatus(player);
+
+  useEffect(() => {
+    if (lecture && audioUri && audioUri !== lecture.audioUri) updateLecture(lecture.id, { audioUri });
+  }, []);
 
   useEffect(() => {
     if (lecture?.status === 'ready' && !lecture.seen) updateLecture(lecture.id, { seen: true });
@@ -37,29 +44,34 @@ export default function LectureScreen() {
     if (at && status.isLoaded) seek(Number(at));
   }, [at, status.isLoaded]);
 
-  useEffect(() => () => player.pause(), []);
-
   if (!lecture) return <Screen>{null}</Screen>;
 
-  async function seek(sec: number) {
-    await setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
-    await player.seekTo(Math.max(0, sec));
+  // the recorder leaves the session in recording mode; playback needs it back to normal
+  async function play() {
+    await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
     player.play();
+  }
+
+  async function seek(sec: number) {
+    await player.seekTo(Math.max(0, sec));
+    await play();
     setTab('audio');
   }
 
   function remove() {
-    const go = () => {
-      player.pause();
-      removeFile(lecture!.audioUri);
-      removeLecture(lecture!.id);
+    confirm(t('lecture.deleteLecture'), t('lecture.deleteLectureMsg'), () => {
+      const { id: lid, audioUri: stored } = lecture!;
+      try {
+        player.pause();
+      } catch {}
+      // leave the screen first, so nothing renders or plays a lecture that no longer exists
       router.back();
-    };
-    if (Platform.OS === 'web') return globalThis.confirm?.(t('lecture.deleteLectureMsg')) && go();
-    RNAlert.alert(t('lecture.deleteLecture'), t('lecture.deleteLectureMsg'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('common.delete'), style: 'destructive', onPress: go },
-    ]);
+      setTimeout(() => {
+        removeLecture(lid);
+        removeFile(stored);
+        if (audioUri && audioUri !== stored) removeFile(audioUri);
+      }, 450);
+    });
   }
 
   const min = Math.max(1, Math.round(lecture.durationMs / 60000));
@@ -152,7 +164,7 @@ export default function LectureScreen() {
                   15
                 </T>
               </Pressable>
-              <Pressable onPress={() => (status.playing ? player.pause() : player.play())} style={st.play}>
+              <Pressable onPress={() => (status.playing ? player.pause() : play())} style={st.play}>
                 {status.playing ? <PauseIcon size={30} /> : <PlayIcon size={30} />}
               </Pressable>
               <Pressable onPress={() => player.seekTo((status.currentTime ?? 0) + 15)} style={st.skip} hitSlop={10}>
