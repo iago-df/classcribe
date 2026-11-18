@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Alert as RNAlert, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
+import { confirm } from '../lib/confirm';
 import Constants from 'expo-constants';
 import { useStore } from '../store';
 import { useT } from '../i18n';
@@ -29,11 +30,7 @@ function SettingsBody() {
       wipe();
       close();
     };
-    if (Platform.OS === 'web') return globalThis.confirm?.(t('settings.wipeMsg')) && go();
-    RNAlert.alert(t('settings.wipe'), t('settings.wipeMsg'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('common.delete'), style: 'destructive', onPress: go },
-    ]);
+    confirm(t('settings.wipe'), t('settings.wipeMsg'), go);
   }
 
   return (
