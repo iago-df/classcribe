@@ -26,7 +26,7 @@ const AlertSchema = z.object({
 
 const NotesSchema = z.object({
   title: z.string().describe('Short topic of the lecture, max 6 words.'),
-  unit: z.string().nullable().describe('Syllabus unit this lecture covers, as named in the syllabus (e.g. "Unit 3"), or null.'),
+  unit: z.string().nullable().describe("Exactly one of the student's unit names that this lecture belongs to, or null."),
   blocks: z.array(BlockSchema),
   alerts: z.array(AlertSchema),
 });
@@ -44,7 +44,9 @@ const SYSTEM = `You are Classcribe, an assistant that turns recorded university 
 
 You receive the transcript of one lecture (with [hh:mm:ss] timestamps) and, when available, the course syllabus the student uploaded.
 
-Write the notes in the same language the lecture was given in. Write them the way a top student would: structured, faithful to what was taught, dense but easy to review. Use the syllabus to name concepts the way the course does, fill in obvious transcription mistakes in technical terms, and to say which unit the lecture covers. Do not add material that was not taught in the lecture.
+Write the notes in the same language the lecture was given in. Write them the way a top student would: structured, faithful to what was taught, dense but easy to review. Use the syllabus to name concepts the way the course does and to fill in obvious transcription mistakes in technical terms. Do not add material that was not taught in the lecture.
+
+The student organises each subject in units they create. Set "unit" to exactly one of the unit names you are given when the lecture clearly belongs to it, otherwise null. Never invent a unit name.
 
 Note blocks:
 - "heading": a numbered section title, like "1. Definition".
@@ -95,6 +97,7 @@ export async function writeNotes(opts: {
   lectureDate: Date;
   segments: Segment[];
   syllabus: SyllabusFile[];
+  units: string[];
   onPhase: (phase: 'reading' | 'writing', progress: number) => void;
 }): Promise<NotesResult & { usedSyllabus: boolean }> {
   const docs = await syllabusBlocks(opts.syllabus);
@@ -116,7 +119,7 @@ export async function writeNotes(opts: {
           ...docs,
           {
             type: 'text',
-            text: `Subject: ${opts.subject}\nLecture date: ${dateLine}\n${docs.length ? 'The syllabus is attached above.' : 'No syllabus was uploaded for this subject.'}\n\n<transcript>\n${transcript}\n</transcript>`,
+            text: `Subject: ${opts.subject}\nLecture date: ${dateLine}\nThe student's units for this subject: ${opts.units.length ? opts.units.map((u) => `"${u}"`).join(', ') : 'none yet'}\n${docs.length ? 'The syllabus is attached above.' : 'No syllabus was uploaded for this subject.'}\n\n<transcript>\n${transcript}\n</transcript>`,
           },
         ],
       },
