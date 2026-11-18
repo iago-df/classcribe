@@ -63,6 +63,17 @@ const en = {
     deleteSubject: 'Delete subject',
     deleteSubjectMsg: 'This deletes its lectures, notes, alerts and syllabus files.',
   },
+  units: {
+    add: 'New unit',
+    name: 'Unit name',
+    placeholder: 'e.g. Unit 3 · Derivatives',
+    none: 'No unit',
+    rename: 'Rename unit',
+    remove: 'Delete unit',
+    removeMsg: 'Its lectures stay in the subject, without a unit.',
+    moveTo: 'Move to unit',
+    count: '{n} lectures',
+  },
   lecture: {
     kicker: 'Lecture {n}',
     kickerUnit: '{unit} · Lecture {n}',

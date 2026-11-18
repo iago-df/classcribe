@@ -65,6 +65,17 @@ const es: Dict = {
     deleteSubject: 'Eliminar asignatura',
     deleteSubjectMsg: 'Se borrarán sus clases, apuntes, avisos y archivos del temario.',
   },
+  units: {
+    add: 'Nuevo tema',
+    name: 'Nombre del tema',
+    placeholder: 'p. ej. Tema 3 · Derivadas',
+    none: 'Sin tema',
+    rename: 'Renombrar tema',
+    remove: 'Eliminar tema',
+    removeMsg: 'Sus clases se quedan en la asignatura, sin tema.',
+    moveTo: 'Mover al tema',
+    count: '{n} clases',
+  },
   lecture: {
     kicker: 'Clase {n}',
     kickerUnit: '{unit} · Clase {n}',

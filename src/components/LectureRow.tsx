@@ -6,7 +6,7 @@ import type { Lecture } from '../types';
 import { colors } from '../theme';
 import { T } from './ui';
 
-export default function LectureRow({ lecture }: { lecture: Lecture }) {
+export default function LectureRow({ lecture, onLongPress }: { lecture: Lecture; onLongPress?: () => void }) {
   const { t, locale } = useT();
   const min = Math.max(1, Math.round(lecture.durationMs / 60000));
   const state =
@@ -22,6 +22,8 @@ export default function LectureRow({ lecture }: { lecture: Lecture }) {
   return (
     <Pressable
       onPress={() => router.push(`/lecture/${lecture.id}`)}
+      onLongPress={onLongPress}
+      delayLongPress={350}
       style={({ pressed }) => [st.row, pressed && { opacity: 0.7 }]}
     >
       <View style={st.ico}>
