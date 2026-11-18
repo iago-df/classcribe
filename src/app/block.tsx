@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useStore, uid } from '../store';
 import { useT } from '../i18n';
 import { colors, fonts, shades } from '../theme';
 import { hhmm } from '../lib/time';
+import ClockPicker from '../components/ClockPicker';
+import { CloseIcon, TrashIcon } from '../components/icons';
 import { Button, Kicker, SheetScreen, T, useSheetClose } from '../components/ui';
 import type { Shade } from '../types';
 
@@ -15,6 +17,8 @@ export default function BlockEditorScreen() {
     </SheetScreen>
   );
 }
+
+const ROW = 46; // every row has the same height so the sheet never grows
 
 function BlockEditor() {
   const close = useSheetClose();
@@ -32,6 +36,7 @@ function BlockEditor() {
   const [start, setStart] = useState(initStart);
   const [end, setEnd] = useState(existing?.end ?? initStart + 60);
   const [room, setRoom] = useState(existing?.room ?? '');
+  const [clock, setClock] = useState<'start' | 'end' | null>(null);
   const subject = subjects.find((s) => s.id === subjectId);
   const [shade, setShade] = useState<Shade>(subject?.shade ?? ((subjects.length % 4) as Shade));
 
@@ -48,45 +53,67 @@ function BlockEditor() {
 
   return (
     <View>
-      <T weight="semibold" style={st.title}>
-        {existing ? t('block.editTitle') : t('block.newTitle')}
-      </T>
+      <View style={st.head}>
+        <T weight="semibold" style={st.title}>
+          {existing ? t('block.editTitle') : t('block.newTitle')}
+        </T>
+        {existing && (
+          <Pressable
+            accessibilityLabel={t('block.delete')}
+            hitSlop={10}
+            style={st.iconBtn}
+            onPress={() => {
+              removeBlock(existing.id);
+              close();
+            }}
+          >
+            <TrashIcon size={19} color={colors.ink} />
+          </Pressable>
+        )}
+      </View>
 
       <Kicker style={st.label}>{t('block.subject')}</Kicker>
-      <View style={st.wrapRow}>
-        {subjects.map((s) => {
-          const on = !creating && s.id === subjectId;
-          return (
-            <Pressable
-              key={s.id}
-              onPress={() => {
-                setCreating(false);
-                setSubjectId(s.id);
-                setShade(s.shade);
-              }}
-              style={[st.opt, on && st.optOn]}
-            >
-              <T weight="medium" style={{ fontSize: 14, color: on ? colors.white : colors.ink }}>
-                {s.name}
-              </T>
+      {creating ? (
+        <View style={st.newRow}>
+          <TextInput
+            value={newName}
+            onChangeText={setNewName}
+            autoFocus={subjects.length > 0}
+            placeholder={t('block.newSubject')}
+            placeholderTextColor={colors.faint}
+            style={[st.input, { flex: 1 }]}
+          />
+          {subjects.length > 0 && (
+            <Pressable onPress={() => setCreating(false)} style={st.iconBtn} hitSlop={8} accessibilityLabel={t('common.cancel')}>
+              <CloseIcon size={18} />
             </Pressable>
-          );
-        })}
-        <Pressable onPress={() => setCreating(true)} style={[st.opt, creating && st.optOn]}>
-          <T weight="medium" style={{ fontSize: 14, color: creating ? colors.white : colors.ink }}>
-            + {t('subjects.add')}
-          </T>
-        </Pressable>
-      </View>
-      {creating && (
-        <TextInput
-          value={newName}
-          onChangeText={setNewName}
-          autoFocus={subjects.length > 0}
-          placeholder={t('block.newSubject')}
-          placeholderTextColor={colors.faint}
-          style={st.input}
-        />
+          )}
+        </View>
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: ROW }} contentContainerStyle={{ gap: 8 }}>
+          <Pressable onPress={() => setCreating(true)} style={st.opt}>
+            <T weight="medium" style={{ fontSize: 14 }}>
+              + {t('subjects.add')}
+            </T>
+          </Pressable>
+          {subjects.map((s) => {
+            const on = s.id === subjectId;
+            return (
+              <Pressable
+                key={s.id}
+                onPress={() => {
+                  setSubjectId(s.id);
+                  setShade(s.shade);
+                }}
+                style={[st.opt, on && st.optOn]}
+              >
+                <T weight="medium" style={{ fontSize: 14, color: on ? colors.white : colors.ink }}>
+                  {s.name}
+                </T>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       )}
 
       <Kicker style={st.label}>{t('block.day')}</Kicker>
@@ -101,101 +128,73 @@ function BlockEditor() {
       </View>
 
       <View style={{ flexDirection: 'row', gap: 12 }}>
-        <Stepper label={t('block.start')} value={start} onChange={(v) => { setStart(v); if (end <= v) setEnd(v + 50); }} />
-        <Stepper label={t('block.end')} value={end} onChange={setEnd} />
+        <View style={{ flex: 1 }}>
+          <Kicker style={st.label}>{t('block.start')}</Kicker>
+          <Pressable onPress={() => setClock('start')} style={st.time}>
+            <T mono weight="medium" style={{ fontSize: 20 }}>
+              {hhmm(start)}
+            </T>
+          </Pressable>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Kicker style={st.label}>{t('block.end')}</Kicker>
+          <Pressable onPress={() => setClock('end')} style={[st.time, end <= start && { borderColor: colors.ink }]}>
+            <T mono weight="medium" style={{ fontSize: 20 }}>
+              {hhmm(end)}
+            </T>
+          </Pressable>
+        </View>
       </View>
 
-      <Kicker style={st.label}>{t('block.room')}</Kicker>
-      <TextInput value={room} onChangeText={setRoom} placeholder={t('block.roomPlaceholder')} placeholderTextColor={colors.faint} style={[st.input, { marginTop: 0 }]} />
-
-      <Kicker style={st.label}>{t('block.shade')}</Kicker>
       <View style={{ flexDirection: 'row', gap: 12 }}>
-        {shades.map((sh, i) => (
-          <Pressable key={i} onPress={() => setShade(i as Shade)} style={[st.swatch, { backgroundColor: sh.bg }, shade === i && st.swatchOn]} />
-        ))}
+        <View style={{ flex: 1 }}>
+          <Kicker style={st.label}>{t('block.room')}</Kicker>
+          <TextInput value={room} onChangeText={setRoom} placeholder={t('block.roomPlaceholder')} placeholderTextColor={colors.faint} style={st.input} />
+        </View>
+        <View>
+          <Kicker style={st.label}>{t('block.shade')}</Kicker>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {shades.map((sh, i) => (
+              <Pressable key={i} onPress={() => setShade(i as Shade)} style={[st.swatch, { backgroundColor: sh.bg }, shade === i && st.swatchOn]} />
+            ))}
+          </View>
+        </View>
       </View>
 
-      {!valid && end <= start && <T style={{ color: colors.mute, marginTop: 18 }}>{t('block.invalid')}</T>}
-      <Button label={t('common.save')} onPress={save} disabled={!valid} style={{ marginTop: 28 }} />
-      {existing && (
-        <Button
-          label={t('block.delete')}
-          variant="ghost"
-          style={{ marginTop: 4 }}
-          onPress={() => {
-            removeBlock(existing.id);
-            close();
-          }}
-        />
-      )}
-      <Button label={t('common.cancel')} variant="ghost" onPress={close} />
-    </View>
-  );
-}
+      <Button label={t('common.save')} onPress={save} disabled={!valid} style={{ marginTop: 26 }} />
+      <Pressable onPress={close} style={st.cancel}>
+        <T style={{ color: colors.mute, fontSize: 14 }}>{t('common.cancel')}</T>
+      </Pressable>
 
-function Stepper({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const latest = useRef(value);
-  latest.current = value;
-  const step = (d: number) => onChange(Math.max(6 * 60, Math.min(23 * 60, latest.current + d)));
-  const hold = (d: number) => {
-    timer.current = setInterval(() => step(d), 110);
-  };
-  const release = () => {
-    if (timer.current) clearInterval(timer.current);
-    timer.current = null;
-  };
-  return (
-    <View style={{ flex: 1 }}>
-      <Kicker style={st.label}>{label}</Kicker>
-      <View style={st.stepper}>
-        <Pressable onPress={() => step(-5)} onLongPress={() => hold(-5)} onPressOut={release} style={st.stepBtn} hitSlop={6}>
-          <T weight="semibold" style={{ fontSize: 20 }}>−</T>
-        </Pressable>
-        <T mono weight="medium" style={{ fontSize: 20 }}>
-          {hhmm(value)}
-        </T>
-        <Pressable onPress={() => step(5)} onLongPress={() => hold(5)} onPressOut={release} style={st.stepBtn} hitSlop={6}>
-          <T weight="semibold" style={{ fontSize: 20 }}>+</T>
-        </Pressable>
-      </View>
+      <ClockPicker
+        visible={clock !== null}
+        title={clock === 'end' ? t('block.end') : t('block.start')}
+        value={clock === 'end' ? end : start}
+        onClose={() => setClock(null)}
+        onDone={(v) => {
+          if (clock === 'start') {
+            setStart(v);
+            if (end <= v) setEnd(v + 50);
+          } else setEnd(v);
+          setClock(null);
+        }}
+      />
     </View>
   );
 }
 
 const st = StyleSheet.create({
-  wrap: { paddingHorizontal: 24 },
-  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: '#d8d8d5', alignSelf: 'center', marginBottom: 18 },
-  title: { fontSize: 28, letterSpacing: -1 },
-  label: { marginTop: 24, marginBottom: 10 },
-  wrapRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  opt: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 16, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.line },
-  optOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  day: { flex: 1, height: 46, borderRadius: 14, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
-  input: {
-    marginTop: 12,
-    height: 54,
-    borderRadius: 18,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.line,
-    paddingHorizontal: 18,
-    fontSize: 16,
-    fontFamily: fonts.medium,
-    color: colors.ink,
-  },
-  stepper: {
-    height: 58,
-    borderRadius: 18,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.line,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-  },
-  stepBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.soft, alignItems: 'center', justifyContent: 'center' },
-  swatch: { width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: colors.line },
-  swatchOn: { borderWidth: 3, borderColor: colors.paper, outlineWidth: 2, outlineColor: colors.ink, outlineStyle: 'solid' },
+  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  title: { fontSize: 26, letterSpacing: -1 },
+  label: { marginTop: 18, marginBottom: 9 },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.soft, alignItems: 'center', justifyContent: 'center' },
+  newRow: { flexDirection: 'row', alignItems: 'center', gap: 8, height: ROW },
+  opt: { height: ROW, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 16, backgroundColor: colors.soft },
+  optOn: { backgroundColor: colors.ink },
+  day: { flex: 1, height: ROW, borderRadius: 14, backgroundColor: colors.soft, alignItems: 'center', justifyContent: 'center' },
+  time: { height: 54, borderRadius: 18, backgroundColor: colors.soft, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'transparent' },
+  input: { height: ROW, borderRadius: 16, backgroundColor: colors.soft, paddingHorizontal: 16, fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
+  swatch: { width: ROW - 8, height: ROW - 8, marginTop: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.line },
+  swatchOn: { borderWidth: 3, borderColor: colors.white, outlineWidth: 2, outlineColor: colors.ink, outlineStyle: 'solid' },
+  cancel: { alignSelf: 'center', paddingVertical: 12, paddingHorizontal: 24 },
 });
