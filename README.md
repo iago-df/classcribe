@@ -72,17 +72,31 @@ You can either listen or write, not both. Classcribe records the lecture, transc
     </td>
   </tr>
   <tr>
-    <td><img src="docs/subjects.jpg" alt="Subjects"></td>
+    <td><img src="docs/units.jpg" alt="Units"></td>
     <td><img src="docs/syllabus.jpg" alt="Syllabus"></td>
   </tr>
   <tr>
     <td valign="top">
-      <h3>Subjects</h3>
-      One card per subject. Subjects with fresh notes turn black. Inside, lectures are grouped by the syllabus unit the AI matched them to.
+      <h3>Subjects and units</h3>
+      One card per subject; subjects with fresh notes turn black. Inside, you split the lectures into your own units. New lectures land in the right unit on their own when the AI can tell, and you can always move them with a long press.
     </td>
     <td valign="top">
       <h3>Syllabus</h3>
-      Upload PDFs, photos of the board or text files per subject. Mark the unit you are on as <i>current</i> and only that one is sent with the next lectures.
+      Folders inside folders, or loose files: PDFs, photos of the board, text. Tap a file to read it inside the app, with its own PDF reader. Mark the files of the unit you are on as <i>current</i> and only those go with the next lectures.
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/selection.jpg" alt="Selection"></td>
+    <td><img src="docs/editor.jpg" alt="Class editor"></td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h3>Select and move</h3>
+      Hold a file or folder to select it, tap to add more. Drag the selection onto a folder, or onto the bar that appears on top to take it out. The bottom bar shares, renames, marks as current or deletes (always asking first).
+    </td>
+    <td valign="top">
+      <h3>Class editor</h3>
+      Subject, theory or practice, day, room and colour, in one sheet that never scrolls. Times are picked on a round clock: hours first, then minutes.
     </td>
   </tr>
   <tr>
@@ -96,7 +110,7 @@ You can either listen or write, not both. Classcribe records the lecture, transc
     </td>
     <td valign="top">
       <h3>Schedule</h3>
-      Build your week once: tap an empty slot, pick the subject, times and room. Four shades of grey, a line for <i>now</i>, and a shortcut to record the class you are in.
+      Build your week once: tap an empty slot and fill in the class. Theory and practice can have different shades, and practice classes carry a <b>P</b>. When the semester is set, lock it so nothing changes by accident.
     </td>
   </tr>
 </table>
@@ -168,11 +182,13 @@ There is no Classcribe server. Subjects, schedule, notes and recordings live on 
 src/
 ├─ app/                    screens (expo-router)
 │  ├─ (tabs)/              subjects · record · agenda + the floating pill nav
-│  ├─ subject/[id].tsx     lectures and syllabus of a subject
+│  ├─ subject/[id].tsx     units with their lectures, and the syllabus
 │  ├─ lecture/[id].tsx     notes · transcript · audio
-│  ├─ block.tsx            add / edit a class in the schedule
-│  └─ settings.tsx         language, API keys, data
-├─ components/             dot-matrix timer, waveform, week grid, alert card, ui kit
+│  ├─ file/[id].tsx        in-app reader for syllabus files
+│  ├─ block.tsx            add / edit a class in the schedule (sheet)
+│  └─ settings.tsx         language, API keys, data (sheet)
+├─ components/             Syllabus (folders, selection, drag and drop), Sheet, ClockPicker,
+│                          dot-matrix timer, waveform, week grid, alert card, ui kit
 ├─ lib/
 │  ├─ ai/                  transcribe.ts (Whisper), notes.ts (Claude), process.ts (pipeline)
 │  ├─ files.ts             recordings and syllabus files on disk
