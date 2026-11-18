@@ -72,6 +72,16 @@ export interface SyllabusFile {
   size: number;
   current: boolean;
   createdAt: number;
+  parentId: string | null; // folder it lives in, null = syllabus root
+}
+
+/** a folder in a subject's syllabus; folders can live inside folders */
+export interface Folder {
+  id: string;
+  subjectId: string;
+  parentId: string | null;
+  name: string;
+  createdAt: number;
 }
 
 export type AlertKind = 'exam' | 'homework' | 'notice';
