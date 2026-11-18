@@ -1,17 +1,19 @@
-import { Alert, Platform } from 'react-native';
-import { translate } from '../i18n';
-import { useStore } from '../store';
+import { create } from 'zustand';
 
-/** "are you sure?" before anything destructive */
+export interface ConfirmRequest {
+  title: string;
+  message: string;
+  yesLabel?: string;
+  onYes: () => void;
+}
+
+/** the confirmation on screen right now, drawn by <ConfirmHost /> */
+export const useConfirm = create<{ request: ConfirmRequest | null; set: (r: ConfirmRequest | null) => void }>((set) => ({
+  request: null,
+  set: (request) => set({ request }),
+}));
+
+/** "are you sure?" before anything destructive, as an app sheet instead of the system dialog */
 export function confirm(title: string, message: string, onYes: () => void, yesLabel?: string) {
-  const lang = useStore.getState().settings.language;
-  const yes = yesLabel ?? translate(lang, 'common.delete');
-  if (Platform.OS === 'web') {
-    if (globalThis.confirm?.(`${title}\n\n${message}`)) onYes();
-    return;
-  }
-  Alert.alert(title, message, [
-    { text: translate(lang, 'common.cancel'), style: 'cancel' },
-    { text: yes, style: 'destructive', onPress: onYes },
-  ]);
+  useConfirm.getState().set({ title, message, onYes, yesLabel });
 }

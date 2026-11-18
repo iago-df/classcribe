@@ -6,6 +6,7 @@ import { useFonts, Geist_400Regular, Geist_500Medium, Geist_600SemiBold } from '
 import { GeistMono_400Regular, GeistMono_500Medium } from '@expo-google-fonts/geist-mono';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '../theme';
+import ConfirmHost from '../components/ConfirmHost';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -32,6 +33,7 @@ export default function RootLayout() {
         <Stack.Screen name="block" options={sheet} />
         <Stack.Screen name="settings" options={sheet} />
       </Stack>
+      <ConfirmHost />
     </SafeAreaProvider>
   );
 }
