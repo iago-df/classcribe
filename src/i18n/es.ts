@@ -95,6 +95,9 @@ const es: Dict = {
     homework: 'TAREA',
     notice: 'AVISO',
     tapToAdd: 'Toca un hueco vacío para añadir una clase',
+    locked: 'Horario bloqueado · toca el candado para editarlo',
+    lock: 'Bloquear horario',
+    unlock: 'Desbloquear horario',
   },
   block: {
     newTitle: 'Nueva clase',

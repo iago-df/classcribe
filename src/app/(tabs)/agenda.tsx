@@ -7,6 +7,7 @@ import { colors } from '../../theme';
 import { currentBlock, hhmm, isoWeek, nextBlock } from '../../lib/time';
 import WeekGrid from '../../components/WeekGrid';
 import AlertCard from '../../components/AlertCard';
+import { LockIcon } from '../../components/icons';
 import { Empty, H1, Kicker, Pad, Screen, Segmented, T } from '../../components/ui';
 
 export default function AgendaScreen() {
@@ -14,6 +15,8 @@ export default function AgendaScreen() {
   const alerts = useStore((s) => s.alerts);
   const blocks = useStore((s) => s.blocks);
   const subjects = useStore((s) => s.subjects);
+  const locked = useStore((s) => !!s.settings.scheduleLocked);
+  const setLocked = useStore((s) => s.setScheduleLocked);
   const [now, setNow] = useState(new Date());
   const pending = alerts.filter((a) => !a.done);
   const [tab, setTab] = useState<'alerts' | 'schedule'>(blocks.length === 0 || pending.length === 0 ? 'schedule' : 'alerts');
@@ -36,9 +39,21 @@ export default function AgendaScreen() {
 
   return (
     <Screen>
-      <Pad>
-        <Kicker>{t('agenda.week', { n: isoWeek(now) })}</Kicker>
-        <H1>{t('agenda.title')}</H1>
+      <Pad style={st.head}>
+        <View>
+          <Kicker>{t('agenda.week', { n: isoWeek(now) })}</Kicker>
+          <H1>{t('agenda.title')}</H1>
+        </View>
+        {tab === 'schedule' && blocks.length > 0 && (
+          <Pressable
+            accessibilityLabel={locked ? t('agenda.unlock') : t('agenda.lock')}
+            onPress={() => setLocked(!locked)}
+            hitSlop={8}
+            style={[st.lock, locked && st.lockOn]}
+          >
+            <LockIcon open={!locked} color={locked ? colors.white : colors.ink} />
+          </Pressable>
+        )}
       </Pad>
       <Pad style={{ marginTop: 18 }}>
         <Segmented
@@ -56,6 +71,7 @@ export default function AgendaScreen() {
           <View style={{ paddingHorizontal: 22, marginTop: 18 }}>
             <WeekGrid now={now} />
           </View>
+          {locked && blocks.length > 0 && <T style={[st.hint, { marginTop: 10 }]}>{t('agenda.locked')}</T>}
           {blocks.length === 0 ? (
             <T style={st.hint}>{t('agenda.tapToAdd')}</T>
           ) : (
@@ -104,6 +120,19 @@ export default function AgendaScreen() {
 }
 
 const st = StyleSheet.create({
+  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  lock: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  lockOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   hint: { textAlign: 'center', color: colors.mute, fontSize: 13, marginTop: 16 },
   nowCard: {
     backgroundColor: colors.white,

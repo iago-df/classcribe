@@ -18,6 +18,7 @@ export function abbreviate(name: string) {
 
 interface Settings {
   language: 'en' | 'es';
+  scheduleLocked?: boolean;
 }
 
 interface State {
@@ -48,6 +49,7 @@ interface State {
   removeAlert: (id: string) => void;
 
   setLanguage: (l: Settings['language']) => void;
+  setScheduleLocked: (locked: boolean) => void;
   wipe: () => void;
 }
 
@@ -111,6 +113,7 @@ export const useStore = create<State>()(
       removeAlert: (id) => set((st) => ({ alerts: st.alerts.filter((a) => a.id !== id) })),
 
       setLanguage: (language) => set((st) => ({ settings: { ...st.settings, language } })),
+      setScheduleLocked: (scheduleLocked) => set((st) => ({ settings: { ...st.settings, scheduleLocked } })),
       wipe: () => set({ ...empty }),
     }),
     {
