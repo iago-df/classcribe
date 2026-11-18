@@ -44,7 +44,7 @@ No building needed. Android 7.0 or newer.
 1. On your phone, download **[Classcribe.apk](https://github.com/iago-df/classcribe/releases/latest/download/Classcribe.apk)** (it is also on the [Releases](https://github.com/iago-df/classcribe/releases) page).
 2. Open the file. If Android asks, allow your browser or file manager to **install unknown apps**.
 3. If Play Protect says the app is not recognised, tap **More details → Install anyway**. It says that about any app that does not come from the Play Store.
-4. Open Classcribe, tap the gear on the Subjects screen and add your [API keys](#api-keys).
+4. Open Classcribe, tap the gear on the Subjects screen and [choose how to process your lectures](#choose-how-lectures-are-processed).
 
 Each release lists the SHA-256 of the APK, so you can check that the file you downloaded is the original. There is no iPhone build to download; you can build it yourself on a Mac (see [Build from source](#build-from-source)).
 
@@ -161,7 +161,20 @@ npx expo run:android   # or, on a Mac: npx expo run:ios
 >    ```
 > 5. Run `npx expo run:android` again.
 
-## API keys
+## Choose how lectures are processed
+
+Pick one in **Settings → AI processing**. You can change it whenever you want.
+
+| | Cloud APIs (default) | My server |
+|---|---|---|
+| **Best for** | Getting started in two minutes | People with a computer that stays on |
+| **You need** | An Anthropic and an OpenAI API key | A computer with Claude Code and the [Classcribe server](server/README.md) |
+| **You pay** | Per lecture, to each API | Nothing extra; it uses your Claude plan's limits |
+| **Transcription** | OpenAI Whisper | On your computer |
+| **Notes** | Claude, through the API | Claude, through Claude Code |
+| **If it is unavailable** | The lecture shows an error to retry | The lecture waits until the server is back |
+
+### API keys
 
 Open **Settings** (the gear on the Subjects screen) and paste:
 
@@ -172,9 +185,18 @@ Open **Settings** (the gear on the Subjects screen) and paste:
 
 Keys are kept in the device's secure storage (Keychain / Keystore) and are only sent to their own API.
 
+### My server
+
+Run the server on your own computer, then paste its address and token in **Settings → My server**. The [server guide](server/README.md) walks you through it step by step.
+
 ## Privacy
 
-There is no Classcribe server. Subjects, schedule, notes and recordings live on your phone. A recording leaves the device only when it is processed: the audio goes to OpenAI for the transcript, and the transcript plus that subject's syllabus go to Anthropic for the notes. Check your university's rules before recording a lecture, and ask the professor if in doubt.
+Classcribe has no accounts and no servers of its own. Subjects, schedule, notes and recordings live on your phone. A recording leaves the device only when it is processed:
+
+- **Cloud APIs:** the audio goes to OpenAI for the transcript, and the transcript plus that subject's syllabus go to Anthropic for the notes.
+- **My server:** the audio and the syllabus go to your computer. The transcript and the syllabus reach Anthropic through Claude Code; the audio stays with you and is deleted once it is transcribed.
+
+Check your university's rules before recording a lecture, and ask the professor if in doubt.
 
 ## Project layout
 
@@ -186,15 +208,17 @@ src/
 │  ├─ lecture/[id].tsx     notes · transcript · audio
 │  ├─ file/[id].tsx        in-app reader for syllabus files
 │  ├─ block.tsx            add / edit a class in the schedule (sheet)
-│  └─ settings.tsx         language, API keys, data (sheet)
+│  └─ settings.tsx         language, APIs or your server, data (sheet)
 ├─ components/             Syllabus (folders, selection, drag and drop), Sheet, ClockPicker,
 │                          dot-matrix timer, waveform, week grid, alert card, ui kit
 ├─ lib/
-│  ├─ ai/                  transcribe.ts (Whisper), notes.ts (Claude), process.ts (pipeline)
+│  ├─ ai/                  transcribe.ts (Whisper), notes.ts (Claude), server.ts (your server),
+│  │                       process.ts (pipeline)
 │  ├─ files.ts             recordings and syllabus files on disk
 │  └─ time.ts              schedule helpers: current class, week number, formats
 ├─ i18n/                   en.ts (default), es.ts
 └─ store.ts                zustand store persisted on the device
+server/                    optional self-hosted processing server (Python)
 scripts/make-brand.py      generates the logo and app icons
 ```
 
