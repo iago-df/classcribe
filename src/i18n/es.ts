@@ -131,6 +131,7 @@ const es: Dict = {
     notice: 'AVISO',
     tapToAdd: 'Toca un hueco vacío para añadir una clase',
     locked: 'Horario bloqueado · toca el candado para editarlo',
+    holdToMove: 'Mantén pulsada una clase para moverla',
     lock: 'Bloquear horario',
     unlock: 'Desbloquear horario',
   },

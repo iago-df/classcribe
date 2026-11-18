@@ -129,6 +129,7 @@ const en = {
     notice: 'NOTICE',
     tapToAdd: 'Tap an empty slot to add a class',
     locked: 'Schedule locked · tap the lock to edit it',
+    holdToMove: 'Hold a class to move it',
     lock: 'Lock schedule',
     unlock: 'Unlock schedule',
   },
