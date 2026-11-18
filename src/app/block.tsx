@@ -1,18 +1,25 @@
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useStore, uid } from '../store';
 import { useT } from '../i18n';
 import { colors, fonts, shades } from '../theme';
 import { hhmm } from '../lib/time';
-import { Button, Kicker, T } from '../components/ui';
+import { Button, Kicker, SheetScreen, T, useSheetClose } from '../components/ui';
 import type { Shade } from '../types';
 
-export default function BlockEditor() {
+export default function BlockEditorScreen() {
+  return (
+    <SheetScreen>
+      <BlockEditor />
+    </SheetScreen>
+  );
+}
+
+function BlockEditor() {
+  const close = useSheetClose();
   const params = useLocalSearchParams<{ id?: string; day?: string; start?: string }>();
   const { t, dict } = useT();
-  const insets = useSafeAreaInsets();
   const subjects = useStore((s) => s.subjects);
   const existing = useStore((s) => s.blocks.find((b) => b.id === params.id));
   const { upsertBlock, removeBlock, addSubject, updateSubject } = useStore.getState();
@@ -36,12 +43,11 @@ export default function BlockEditor() {
     if (creating) sid = addSubject(newName, shade).id;
     else updateSubject(sid, { shade });
     upsertBlock({ id: existing?.id ?? uid(), subjectId: sid, day, start, end, room: room.trim() || undefined });
-    router.back();
+    close();
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.paper }} contentContainerStyle={[st.wrap, { paddingTop: insets.top + 22, paddingBottom: insets.bottom + 30 }]} keyboardShouldPersistTaps="handled">
-      <View style={st.handle} />
+    <View>
       <T weight="semibold" style={st.title}>
         {existing ? t('block.editTitle') : t('block.newTitle')}
       </T>
@@ -118,12 +124,12 @@ export default function BlockEditor() {
           style={{ marginTop: 4 }}
           onPress={() => {
             removeBlock(existing.id);
-            router.back();
+            close();
           }}
         />
       )}
-      <Button label={t('common.cancel')} variant="ghost" onPress={() => router.back()} />
-    </ScrollView>
+      <Button label={t('common.cancel')} variant="ghost" onPress={close} />
+    </View>
   );
 }
 
