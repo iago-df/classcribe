@@ -7,6 +7,7 @@ import DotMatrix from './DotMatrix';
 import { T } from './ui';
 
 export function stepKey(l: Lecture) {
+  if (l.waiting) return 'steps.waiting' as const;
   if (l.status === 'transcribing') return 'steps.transcribing' as const;
   return l.progress < 0.5 ? ('steps.matching' as const) : ('steps.structuring' as const);
 }
