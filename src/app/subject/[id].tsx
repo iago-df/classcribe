@@ -1,22 +1,15 @@
 import { useState } from 'react';
-import { Alert as RNAlert, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { useStore, uid } from '../../store';
 import { useT } from '../../i18n';
 import { colors, fonts } from '../../theme';
 import { keepSyllabusFile, removeFile } from '../../lib/files';
+import { confirm } from '../../lib/confirm';
 import LectureRow from '../../components/LectureRow';
 import { BackLink, Button, Empty, H1, Kicker, Pad, Row, Screen, Segmented, Sheet, SmallPill, T } from '../../components/ui';
 import type { Lecture, SyllabusFile, Unit } from '../../types';
-
-function confirm(title: string, msg: string, onYes: () => void, yes: string) {
-  if (Platform.OS === 'web') {
-    if (globalThis.confirm?.(`${title}\n\n${msg}`)) onYes();
-    return;
-  }
-  RNAlert.alert(title, msg, [{ text: 'Cancel', style: 'cancel' }, { text: yes, style: 'destructive', onPress: onYes }]);
-}
 
 export default function SubjectScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,7 +18,7 @@ export default function SubjectScreen() {
   const lectures = useStore((s) => s.lectures).filter((l) => l.subjectId === id);
   const files = useStore((s) => s.files).filter((f) => f.subjectId === id);
   const units = useStore((s) => s.units).filter((u) => u.subjectId === id);
-  const { addFile, updateFile, removeFile: dropFile, updateSubject, removeSubject, addUnit, renameUnit, removeUnit, moveLectures } =
+  const { addFile, updateFile, removeFile: dropFile, updateSubject, removeSubject, addUnit, renameUnit, removeUnit, moveLectures, removeLecture } =
     useStore.getState();
 
   const [tab, setTab] = useState<'lectures' | 'syllabus'>('lectures');
@@ -251,6 +244,19 @@ export default function SubjectScreen() {
             }}
           />
         ))}
+        <Button
+          label={t('lecture.deleteLecture')}
+          variant="ghost"
+          style={{ marginTop: 8 }}
+          onPress={() =>
+            moving &&
+            confirm(t('lecture.deleteLecture'), t('lecture.deleteLectureMsg'), () => {
+              removeFile(moving.audioUri);
+              removeLecture(moving.id);
+              setMoving(null);
+            })
+          }
+        />
       </Sheet>
 
       <Sheet visible={!!fileMenu} onClose={() => setFileMenu(null)}>
