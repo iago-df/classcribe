@@ -26,6 +26,17 @@
 > [!NOTE]
 > The screenshots use sample data. The app comes in English (default) and Spanish; switch it in settings.
 
+## Install on Android
+
+No building needed. Android 7.0 or newer.
+
+1. On your phone, download **[Classcribe.apk](https://github.com/iago-df/classcribe/releases/latest/download/Classcribe.apk)** (it is also on the [Releases](https://github.com/iago-df/classcribe/releases) page).
+2. Open the file. If Android asks, allow your browser or file manager to **install unknown apps**.
+3. If Play Protect says the app is not recognised, tap **More details → Install anyway**. It says that about any app that does not come from the Play Store.
+4. Open Classcribe, tap the gear on the Subjects screen and add your [API keys](#api-keys).
+
+Each release lists the SHA-256 of the APK, so you can check that the file you downloaded is the original. There is no iPhone build to download; you can build it yourself on a Mac (see [Build from source](#build-from-source)).
+
 ## Why
 
 A lecture lasts 60 minutes. Your notes? Five lines.
