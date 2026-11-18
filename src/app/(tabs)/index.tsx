@@ -108,7 +108,7 @@ export default function RecordScreen() {
       subjectId: saveSubject,
       number: count + 1,
       title: subj?.name ?? '',
-      unit: null,
+      unitId: null,
       createdAt: pending.startedAt,
       durationMs: pending.durationMs,
       audioUri,

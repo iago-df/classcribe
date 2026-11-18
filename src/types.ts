@@ -22,6 +22,14 @@ export interface ScheduleBlock {
 
 export type ClassKind = 'theory' | 'practice';
 
+/** a unit (tema) the student creates inside a subject to group its lectures */
+export interface Unit {
+  id: string;
+  subjectId: string;
+  name: string;
+  createdAt: number;
+}
+
 export interface Segment {
   start: number; // seconds
   end: number;
@@ -42,7 +50,7 @@ export interface Lecture {
   subjectId: string;
   number: number;
   title: string;
-  unit: string | null;
+  unitId: string | null; // one of the units the student created in the subject
   createdAt: number;
   durationMs: number;
   audioUri: string;
