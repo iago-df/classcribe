@@ -6,6 +6,7 @@ import {
   PanResponder,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -14,6 +15,9 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme';
+
+// react-native-web has no native driver; there the animation must run in js
+const NATIVE = Platform.OS !== 'web';
 
 /** height of the on-screen keyboard, 0 when hidden */
 export function useKeyboardHeight() {
@@ -57,12 +61,14 @@ function Panel({
   const panelH = useRef(height * 0.6);
   const request = useRef(onRequestClose);
   request.current = onRequestClose;
+  // content taller than the screen scrolls; dragging down only closes when it is scrolled to the top
+  const scrollY = useRef(0);
 
   useEffect(() => {
     if (open) {
-      Animated.spring(y, { toValue: 0, useNativeDriver: true, damping: 24, stiffness: 260, mass: 0.9 }).start();
+      Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE, damping: 24, stiffness: 260, mass: 0.9 }).start();
     } else {
-      Animated.timing(y, { toValue: panelH.current + 60, duration: 200, useNativeDriver: true }).start(({ finished }) => {
+      Animated.timing(y, { toValue: panelH.current + 60, duration: 200, useNativeDriver: NATIVE }).start(({ finished }) => {
         if (finished) onClosed();
       });
     }
@@ -70,14 +76,14 @@ function Panel({
 
   const pan = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => g.dy > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.5,
+      onMoveShouldSetPanResponder: (_, g) => scrollY.current <= 0 && g.dy > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.5,
       onPanResponderGrant: () => Keyboard.dismiss(),
       onPanResponderMove: (_, g) => y.setValue(Math.max(0, g.dy)),
       onPanResponderRelease: (_, g) => {
         if (g.dy > panelH.current * 0.22 || g.vy > 0.8) request.current();
-        else Animated.spring(y, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 300 }).start();
+        else Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE, damping: 22, stiffness: 300 }).start();
       },
-      onPanResponderTerminate: () => Animated.spring(y, { toValue: 0, useNativeDriver: true }).start(),
+      onPanResponderTerminate: () => Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE }).start(),
     }),
   ).current;
 
@@ -104,7 +110,16 @@ function Panel({
           <View style={st.handleZone}>
             <View style={st.handle} />
           </View>
-          {children}
+          <ScrollView
+            bounces={false}
+            overScrollMode="never"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+            onScroll={(e) => (scrollY.current = e.nativeEvent.contentOffset.y)}
+          >
+            {children}
+          </ScrollView>
         </Animated.View>
       </View>
     </CloseCtx.Provider>
