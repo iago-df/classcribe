@@ -17,6 +17,7 @@ export default function AgendaScreen() {
   const subjects = useStore((s) => s.subjects);
   const locked = useStore((s) => !!s.settings.scheduleLocked);
   const setLocked = useStore((s) => s.setScheduleLocked);
+  const [movingClass, setMovingClass] = useState(false);
   const [now, setNow] = useState(new Date());
   const pending = alerts.filter((a) => !a.done);
   const [tab, setTab] = useState<'alerts' | 'schedule'>(blocks.length === 0 || pending.length === 0 ? 'schedule' : 'alerts');
@@ -38,7 +39,7 @@ export default function AgendaScreen() {
   const shownSubject = shown && subjects.find((s) => s.id === shown.subjectId);
 
   return (
-    <Screen>
+    <Screen scrollEnabled={!movingClass}>
       <Pad style={st.head}>
         <View>
           <Kicker>{t('agenda.week', { n: isoWeek(now) })}</Kicker>
@@ -69,9 +70,9 @@ export default function AgendaScreen() {
       {tab === 'schedule' ? (
         <>
           <View style={{ paddingHorizontal: 22, marginTop: 18 }}>
-            <WeekGrid now={now} />
+            <WeekGrid now={now} onMoving={setMovingClass} />
           </View>
-          {locked && blocks.length > 0 && <T style={[st.hint, { marginTop: 10 }]}>{t('agenda.locked')}</T>}
+          {blocks.length > 0 && <T style={[st.hint, { marginTop: 10 }]}>{locked ? t('agenda.locked') : t('agenda.holdToMove')}</T>}
           {blocks.length === 0 ? (
             <T style={st.hint}>{t('agenda.tapToAdd')}</T>
           ) : (
