@@ -10,7 +10,8 @@
     "backgroundColor": "#f6f6f4",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.iagodf.classcribe"
+      "bundleIdentifier": "com.iagodf.classcribe",
+      "buildNumber": "2"
     },
     "android": {
       "package": "com.iagodf.classcribe",
@@ -20,7 +21,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png",
