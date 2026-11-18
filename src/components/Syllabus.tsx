@@ -93,8 +93,11 @@ export function useSyllabus(subjectId: string, active: boolean) {
   const measure = (view: Host | null | undefined): Promise<Rect | null> =>
     new Promise((resolve) => (view ? view.measureInWindow((x, y, w, h) => resolve({ x, y, w, h })) : resolve(null)));
 
+  const inside = (r: Rect | undefined, x: number, y: number) => !!r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
   const hitTest = (x: number, y: number) => {
-    for (const [k, r] of rects.current) if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return k;
+    // the parent strip floats over the list, so it wins
+    if (inside(rects.current.get(PARENT), x, y)) return PARENT;
+    for (const [k, r] of rects.current) if (k !== PARENT && inside(r, x, y)) return k;
     return null;
   };
 
@@ -126,6 +129,8 @@ export function useSyllabus(subjectId: string, active: boolean) {
     const box = await measure(container.current);
     origin.current = box ? { x: box.x, y: box.y } : { x: 0, y: 0 };
     pos.setValue({ x: pageX - origin.current.x, y: pageY - origin.current.y });
+    // the "move to parent" strip only mounts once dragging starts: let it render before measuring
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     rects.current.clear();
     for (const [k, v] of targets.current) {
       if (k !== PARENT && selected.has(folderKey(k))) continue; // can't drop a folder into itself
