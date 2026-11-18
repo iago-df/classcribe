@@ -58,7 +58,8 @@ export default function WeekGrid({ now }: { now: Date }) {
       {w > 0 &&
         blocks.map((b) => {
           const subj = subjects.find((s) => s.id === b.subjectId);
-          const sh = shades[subj?.shade ?? 0];
+          const practice = b.kind === 'practice';
+          const sh = shades[(practice ? subj?.practiceShade ?? subj?.shade : subj?.shade) ?? 0];
           return (
             <Pressable
               key={b.id}
@@ -70,6 +71,7 @@ export default function WeekGrid({ now }: { now: Date }) {
             >
               <T mono style={{ fontSize: 9.5, letterSpacing: 0.4, color: sh.fg }}>
                 {subj?.abbr ?? '—'}
+                {practice ? ` ${dict.block.practiceTag}` : ''}
               </T>
               {b.room && y(b.end) - y(b.start) > 44 ? (
                 <T mono style={{ fontSize: 8.5, color: sh.fg, opacity: 0.6, marginTop: 2 }}>
