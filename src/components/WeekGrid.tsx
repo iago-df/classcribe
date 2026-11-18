@@ -13,6 +13,7 @@ export default function WeekGrid({ now }: { now: Date }) {
   const { dict } = useT();
   const blocks = useStore((s) => s.blocks);
   const subjects = useStore((s) => s.subjects);
+  const locked = useStore((s) => !!s.settings.scheduleLocked);
   // the grid sits inside 22px side padding
   const w = useWindowDimensions().width - 44;
 
@@ -44,6 +45,7 @@ export default function WeekGrid({ now }: { now: Date }) {
 
       {/* tap targets for empty slots */}
       {w > 0 &&
+        !locked &&
         [0, 1, 2, 3, 4].map((d) => (
           <Pressable
             key={d}
@@ -63,6 +65,7 @@ export default function WeekGrid({ now }: { now: Date }) {
           return (
             <Pressable
               key={b.id}
+              disabled={locked}
               onPress={() => router.push({ pathname: '/block', params: { id: b.id } })}
               style={[
                 st.block,
