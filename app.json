@@ -46,7 +46,9 @@
           "imageWidth": 120,
           "backgroundColor": "#0b0b0b"
         }
-      ]
+      ],
+      "react-native-blob-util",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true
