@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Alert, Lecture, ScheduleBlock, Shade, Subject, SyllabusFile, Unit } from './types';
+import type { Alert, Folder, Lecture, ScheduleBlock, Shade, Subject, SyllabusFile, Unit } from './types';
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
@@ -27,6 +27,7 @@ interface State {
   lectures: Lecture[];
   units: Unit[];
   files: SyllabusFile[];
+  folders: Folder[];
   alerts: Alert[];
   settings: Settings;
 
@@ -50,6 +51,13 @@ interface State {
   updateFile: (id: string, patch: Partial<SyllabusFile>) => void;
   removeFile: (id: string) => void;
 
+  addFolder: (subjectId: string, parentId: string | null, name: string) => Folder;
+  renameFolder: (id: string, name: string) => void;
+  /** deletes files and folders, folders with everything inside */
+  removeItems: (fileIds: string[], folderIds: string[]) => void;
+  /** moves files and folders into a folder (null = root); a folder never goes inside itself */
+  moveItems: (fileIds: string[], folderIds: string[], parentId: string | null) => void;
+
   setAlertsFor: (lectureId: string, alerts: Alert[]) => void;
   toggleAlert: (id: string) => void;
   removeAlert: (id: string) => void;
@@ -59,7 +67,23 @@ interface State {
   wipe: () => void;
 }
 
-const empty = { subjects: [], blocks: [], lectures: [], units: [], files: [], alerts: [] };
+const empty = { subjects: [], blocks: [], lectures: [], units: [], files: [], folders: [], alerts: [] };
+
+/** a folder and every folder below it */
+export function folderTree(folders: Folder[], ids: string[]) {
+  const out = new Set(ids);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const f of folders) {
+      if (f.parentId && out.has(f.parentId) && !out.has(f.id)) {
+        out.add(f.id);
+        grew = true;
+      }
+    }
+  }
+  return out;
+}
 
 /** v1 kept the AI's unit name on each lecture; v2 has real units the student owns */
 function migrate(state: Record<string, any>, version: number) {
@@ -76,6 +100,10 @@ function migrate(state: Record<string, any>, version: number) {
       return { ...rest, unitId };
     });
     state.units = units;
+  }
+  if (version < 3) {
+    state.folders = [];
+    state.files = (state.files ?? []).map((f: any) => ({ ...f, parentId: null }));
   }
   return state;
 }
@@ -111,6 +139,7 @@ export const useStore = create<State>()(
           lectures: st.lectures.filter((l) => l.subjectId !== id),
           units: st.units.filter((u) => u.subjectId !== id),
           files: st.files.filter((f) => f.subjectId !== id),
+          folders: st.folders.filter((f) => f.subjectId !== id),
           alerts: st.alerts.filter((a) => a.subjectId !== id),
         })),
 
@@ -148,6 +177,31 @@ export const useStore = create<State>()(
       updateFile: (id, patch) => set((st) => ({ files: st.files.map((f) => (f.id === id ? { ...f, ...patch } : f)) })),
       removeFile: (id) => set((st) => ({ files: st.files.filter((f) => f.id !== id) })),
 
+      addFolder: (subjectId, parentId, name) => {
+        const f: Folder = { id: uid(), subjectId, parentId, name: name.trim(), createdAt: Date.now() };
+        set((st) => ({ folders: [...st.folders, f] }));
+        return f;
+      },
+      renameFolder: (id, name) => set((st) => ({ folders: st.folders.map((f) => (f.id === id ? { ...f, name: name.trim() } : f)) })),
+      removeItems: (fileIds, folderIds) =>
+        set((st) => {
+          const gone = folderTree(st.folders, folderIds);
+          return {
+            folders: st.folders.filter((f) => !gone.has(f.id)),
+            files: st.files.filter((f) => !fileIds.includes(f.id) && !(f.parentId && gone.has(f.parentId))),
+          };
+        }),
+      moveItems: (fileIds, folderIds, parentId) =>
+        set((st) => {
+          // moving a folder into itself or into one of its own subfolders is ignored
+          const blocked = folderTree(st.folders, folderIds);
+          if (parentId && blocked.has(parentId)) folderIds = [];
+          return {
+            files: st.files.map((f) => (fileIds.includes(f.id) ? { ...f, parentId } : f)),
+            folders: st.folders.map((f) => (folderIds.includes(f.id) ? { ...f, parentId } : f)),
+          };
+        }),
+
       setAlertsFor: (lectureId, alerts) =>
         set((st) => ({ alerts: [...st.alerts.filter((a) => a.lectureId !== lectureId), ...alerts] })),
       toggleAlert: (id) => set((st) => ({ alerts: st.alerts.map((a) => (a.id === id ? { ...a, done: !a.done } : a)) })),
@@ -159,7 +213,7 @@ export const useStore = create<State>()(
     }),
     {
       name: 'classcribe',
-      version: 2,
+      version: 3,
       migrate: (persisted, version) => migrate(persisted as Record<string, any>, version) as unknown as State,
       storage: createJSONStorage(() => AsyncStorage),
       // anything that was mid-processing when the app died can't resume on its own

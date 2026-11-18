@@ -37,18 +37,20 @@ export function Screen({
   children,
   scroll = true,
   bottomSpace = 120,
+  scrollEnabled = true,
   style,
 }: {
   children: ReactNode;
   scroll?: boolean;
   bottomSpace?: number;
+  scrollEnabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   const insets = useSafeAreaInsets();
   const inner = { paddingTop: insets.top + 18, paddingBottom: insets.bottom + bottomSpace };
   if (!scroll) return <View style={[s.screen, inner, style]}>{children}</View>;
   return (
-    <ScrollView style={s.screen} contentContainerStyle={[inner, style]} showsVerticalScrollIndicator={false}>
+    <ScrollView style={s.screen} contentContainerStyle={[inner, style]} showsVerticalScrollIndicator={false} scrollEnabled={scrollEnabled}>
       {children}
     </ScrollView>
   );
