@@ -6,7 +6,7 @@ import { useStore } from '../../store';
 import { useT } from '../../i18n';
 import { colors } from '../../theme';
 import { clock, shortDate } from '../../lib/time';
-import { processLecture } from '../../lib/ai/process';
+import { processLecture, stopWaiting } from '../../lib/ai/process';
 import { recordingUri, removeFile } from '../../lib/files';
 import { confirm } from '../../lib/confirm';
 import DotMatrix from '../../components/DotMatrix';
@@ -118,6 +118,12 @@ export default function LectureScreen() {
                   {t('lecture.processingTitle')}
                 </T>
                 <ProcessingPill lecture={lecture} />
+                {lecture.waiting && (
+                  <>
+                    <T style={st.np}>{t('lecture.waitingServer')}</T>
+                    <Button label={t('lecture.stopWaiting')} variant="light" onPress={() => stopWaiting(lecture.id)} />
+                  </>
+                )}
               </View>
             )}
             {broken && (

@@ -61,6 +61,8 @@ export interface Lecture {
   seen: boolean;
   transcript?: Segment[];
   notes?: NoteBlock[];
+  serverJob?: string; // set while the student's own server is handling this lecture
+  waiting?: boolean; // that server can't be reached right now
 }
 
 export interface SyllabusFile {

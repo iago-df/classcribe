@@ -19,6 +19,8 @@ export function abbreviate(name: string) {
 interface Settings {
   language: 'en' | 'es';
   scheduleLocked?: boolean;
+  engine?: 'api' | 'server'; // who processes the lectures, the cloud apis when missing
+  serverUrl?: string;
 }
 
 interface State {
@@ -64,6 +66,8 @@ interface State {
 
   setLanguage: (l: Settings['language']) => void;
   setScheduleLocked: (locked: boolean) => void;
+  setEngine: (engine: NonNullable<Settings['engine']>) => void;
+  setServerUrl: (url: string) => void;
   wipe: () => void;
 }
 
@@ -209,6 +213,8 @@ export const useStore = create<State>()(
 
       setLanguage: (language) => set((st) => ({ settings: { ...st.settings, language } })),
       setScheduleLocked: (scheduleLocked) => set((st) => ({ settings: { ...st.settings, scheduleLocked } })),
+      setEngine: (engine) => set((st) => ({ settings: { ...st.settings, engine } })),
+      setServerUrl: (serverUrl) => set((st) => ({ settings: { ...st.settings, serverUrl } })),
       wipe: () => set({ ...empty }),
     }),
     {
@@ -216,10 +222,11 @@ export const useStore = create<State>()(
       version: 3,
       migrate: (persisted, version) => migrate(persisted as Record<string, any>, version) as unknown as State,
       storage: createJSONStorage(() => AsyncStorage),
-      // anything that was mid-processing when the app died can't resume on its own
+      // what was mid-processing on the phone when the app died can't resume on its own;
+      // lectures on the student's own server carry on there
       onRehydrateStorage: () => (state) => {
         state?.lectures.forEach((l) => {
-          if (l.status === 'transcribing' || l.status === 'writing') state.updateLecture(l.id, { status: 'interrupted' });
+          if ((l.status === 'transcribing' || l.status === 'writing') && !l.serverJob) state.updateLecture(l.id, { status: 'interrupted' });
         });
       },
     },

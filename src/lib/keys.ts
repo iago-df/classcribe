@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-export type KeyName = 'anthropic_api_key' | 'openai_api_key';
+export type KeyName = 'anthropic_api_key' | 'openai_api_key' | 'server_token';
 
 // secure store isn't available on web, fall back to localStorage there (dev only)
 export async function getKey(name: KeyName): Promise<string | null> {

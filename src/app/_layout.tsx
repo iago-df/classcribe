@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -7,6 +8,8 @@ import { GeistMono_400Regular, GeistMono_500Medium } from '@expo-google-fonts/ge
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '../theme';
 import ConfirmHost from '../components/ConfirmHost';
+import { useStore } from '../store';
+import { resumeServerLectures } from '../lib/ai/process';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -18,6 +21,19 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync().catch(() => {});
   }, [loaded]);
+
+  // lectures on the student's own server keep going while the app is closed
+  useEffect(() => {
+    const off = useStore.persist.onFinishHydration(resumeServerLectures);
+    if (useStore.persist.hasHydrated()) resumeServerLectures();
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') resumeServerLectures();
+    });
+    return () => {
+      off();
+      sub.remove();
+    };
+  }, []);
 
   if (!loaded) return null;
 
