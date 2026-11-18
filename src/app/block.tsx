@@ -6,6 +6,7 @@ import { useT } from '../i18n';
 import { colors, fonts, shades } from '../theme';
 import { hhmm } from '../lib/time';
 import ClockPicker from '../components/ClockPicker';
+import { confirm } from '../lib/confirm';
 import { CloseIcon, TrashIcon } from '../components/icons';
 import { Button, Kicker, Segmented, SheetScreen, T, useSheetClose } from '../components/ui';
 import type { ClassKind, Shade, Subject } from '../types';
@@ -66,10 +67,12 @@ function BlockEditor() {
             accessibilityLabel={t('block.delete')}
             hitSlop={10}
             style={st.iconBtn}
-            onPress={() => {
-              removeBlock(existing.id);
-              close();
-            }}
+            onPress={() =>
+              confirm(t('block.delete'), t('block.deleteMsg'), () => {
+                removeBlock(existing.id);
+                close();
+              })
+            }
           >
             <TrashIcon size={19} color={colors.ink} />
           </Pressable>

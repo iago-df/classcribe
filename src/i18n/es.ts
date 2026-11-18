@@ -151,6 +151,7 @@ const es: Dict = {
     practice: 'Práctica',
     practiceTag: 'P',
     delete: 'Quitar del horario',
+    deleteMsg: 'La clase sale del horario. La asignatura, sus clases y apuntes se quedan.',
     invalid: 'Elige una asignatura y comprueba que termina después de empezar.',
   },
   days: { short: ['L', 'M', 'X', 'J', 'V'], long: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'] },

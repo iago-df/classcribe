@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
+  Easing,
   Keyboard,
   Modal,
   PanResponder,
@@ -66,9 +67,10 @@ function Panel({
 
   useEffect(() => {
     if (open) {
-      Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE, damping: 24, stiffness: 260, mass: 0.9 }).start();
+      // short and decisive: buttons inside don't take taps reliably while the panel is still moving
+      Animated.timing(y, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: NATIVE }).start();
     } else {
-      Animated.timing(y, { toValue: panelH.current + 60, duration: 200, useNativeDriver: NATIVE }).start(({ finished }) => {
+      Animated.timing(y, { toValue: panelH.current + 60, duration: 180, easing: Easing.in(Easing.cubic), useNativeDriver: NATIVE }).start(({ finished }) => {
         if (finished) onClosed();
       });
     }
@@ -81,9 +83,9 @@ function Panel({
       onPanResponderMove: (_, g) => y.setValue(Math.max(0, g.dy)),
       onPanResponderRelease: (_, g) => {
         if (g.dy > panelH.current * 0.22 || g.vy > 0.8) request.current();
-        else Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE, damping: 22, stiffness: 300 }).start();
+        else Animated.timing(y, { toValue: 0, duration: 160, easing: Easing.out(Easing.cubic), useNativeDriver: NATIVE }).start();
       },
-      onPanResponderTerminate: () => Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE }).start(),
+      onPanResponderTerminate: () => Animated.timing(y, { toValue: 0, duration: 160, useNativeDriver: NATIVE }).start(),
     }),
   ).current;
 
