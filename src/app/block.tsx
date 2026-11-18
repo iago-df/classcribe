@@ -7,8 +7,8 @@ import { colors, fonts, shades } from '../theme';
 import { hhmm } from '../lib/time';
 import ClockPicker from '../components/ClockPicker';
 import { CloseIcon, TrashIcon } from '../components/icons';
-import { Button, Kicker, SheetScreen, T, useSheetClose } from '../components/ui';
-import type { Shade } from '../types';
+import { Button, Kicker, Segmented, SheetScreen, T, useSheetClose } from '../components/ui';
+import type { ClassKind, Shade, Subject } from '../types';
 
 export default function BlockEditorScreen() {
   return (
@@ -37,17 +37,21 @@ function BlockEditor() {
   const [end, setEnd] = useState(existing?.end ?? initStart + 60);
   const [room, setRoom] = useState(existing?.room ?? '');
   const [clock, setClock] = useState<'start' | 'end' | null>(null);
+  const [kind, setKind] = useState<ClassKind>(existing?.kind ?? 'theory');
   const subject = subjects.find((s) => s.id === subjectId);
-  const [shade, setShade] = useState<Shade>(subject?.shade ?? ((subjects.length % 4) as Shade));
+  // theory and practice of the same subject can have different colours
+  const shadeOf = (s: Subject | undefined, k: ClassKind): Shade =>
+    s ? (k === 'practice' ? s.practiceShade ?? s.shade : s.shade) : ((subjects.length % 4) as Shade);
+  const [shade, setShade] = useState<Shade>(shadeOf(subject, kind));
 
   const valid = (creating ? newName.trim().length > 0 : !!subjectId) && end > start;
 
   function save() {
     if (!valid) return;
     let sid = subjectId!;
-    if (creating) sid = addSubject(newName, shade).id;
-    else updateSubject(sid, { shade });
-    upsertBlock({ id: existing?.id ?? uid(), subjectId: sid, day, start, end, room: room.trim() || undefined });
+    if (creating) sid = addSubject(newName, kind === 'theory' ? shade : undefined).id;
+    updateSubject(sid, kind === 'practice' ? { practiceShade: shade } : { shade });
+    upsertBlock({ id: existing?.id ?? uid(), subjectId: sid, day, start, end, room: room.trim() || undefined, kind });
     close();
   }
 
@@ -103,7 +107,7 @@ function BlockEditor() {
                 key={s.id}
                 onPress={() => {
                   setSubjectId(s.id);
-                  setShade(s.shade);
+                  setShade(shadeOf(s, kind));
                 }}
                 style={[st.opt, on && st.optOn]}
               >
@@ -115,6 +119,19 @@ function BlockEditor() {
           })}
         </ScrollView>
       )}
+
+      <Kicker style={st.label}>{t('block.kind')}</Kicker>
+      <Segmented
+        value={kind}
+        onChange={(k) => {
+          setKind(k);
+          if (!creating) setShade(shadeOf(subject, k));
+        }}
+        options={[
+          { key: 'theory', label: t('block.theory') },
+          { key: 'practice', label: t('block.practice') },
+        ]}
+      />
 
       <Kicker style={st.label}>{t('block.day')}</Kicker>
       <View style={{ flexDirection: 'row', gap: 8 }}>

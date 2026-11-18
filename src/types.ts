@@ -4,7 +4,8 @@ export interface Subject {
   id: string;
   name: string;
   abbr: string;
-  shade: Shade;
+  shade: Shade; // colour of theory classes
+  practiceShade?: Shade; // colour of practice classes, falls back to shade
   createdAt: number;
 }
 
@@ -16,7 +17,10 @@ export interface ScheduleBlock {
   start: number;
   end: number;
   room?: string;
+  kind?: ClassKind; // theory when missing
 }
+
+export type ClassKind = 'theory' | 'practice';
 
 export interface Segment {
   start: number; // seconds
