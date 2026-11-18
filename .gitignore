@@ -49,6 +49,11 @@ promo-video/
 .claude/
 .vscode/
 
+# self-hosted server: its token and the lectures it is working on
+server/config.json
+server/data/
+__pycache__/
+
 # builds
 *.apk
 *.aab
