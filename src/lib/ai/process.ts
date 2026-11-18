@@ -52,6 +52,7 @@ export async function processLecture(lectureId: string) {
     // 2. notes
     update({ status: 'writing', progress: 0.45, error: undefined });
     const files = store().files.filter((f) => f.subjectId === lecture.subjectId);
+    const units = store().units.filter((u) => u.subjectId === lecture.subjectId);
     const current = files.filter((f) => f.current);
     let result;
     try {
@@ -61,6 +62,7 @@ export async function processLecture(lectureId: string) {
         lectureDate: new Date(lecture.createdAt),
         segments,
         syllabus: current.length ? current : files,
+        units: units.map((u) => u.name),
         onPhase: (phase, p) => update({ progress: phase === 'reading' ? 0.48 : 0.5 + p * 0.48 }),
       });
     } catch (e) {
@@ -86,7 +88,8 @@ export async function processLecture(lectureId: string) {
       status: 'ready',
       progress: 1,
       title: result.title || lecture.title,
-      unit: result.unit,
+      // only ever one of the student's own units
+      unitId: units.find((u) => u.name.trim().toLowerCase() === result.unit?.trim().toLowerCase())?.id ?? lecture.unitId,
       notes: result.blocks,
       usedSyllabus: result.usedSyllabus,
       seen: false,

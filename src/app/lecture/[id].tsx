@@ -21,6 +21,7 @@ export default function LectureScreen() {
   const { t, locale } = useT();
   const lecture = useStore((s) => s.lectures.find((l) => l.id === id));
   const subject = useStore((s) => s.subjects.find((x) => x.id === lecture?.subjectId));
+  const unit = useStore((s) => s.units.find((u) => u.id === lecture?.unitId));
   const updateLecture = useStore((s) => s.updateLecture);
   const removeLecture = useStore((s) => s.removeLecture);
   const [tab, setTab] = useState<Tab>(at ? 'audio' : 'notes');
@@ -64,8 +65,8 @@ export default function LectureScreen() {
   const min = Math.max(1, Math.round(lecture.durationMs / 60000));
   const busy = lecture.status === 'transcribing' || lecture.status === 'writing';
   const broken = lecture.status === 'error' || lecture.status === 'interrupted';
-  const kicker = lecture.unit
-    ? t('lecture.kickerUnit', { unit: lecture.unit, n: lecture.number })
+  const kicker = unit
+    ? t('lecture.kickerUnit', { unit: unit.name, n: lecture.number })
     : t('lecture.kicker', { n: lecture.number });
 
   return (
