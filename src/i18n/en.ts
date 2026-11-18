@@ -93,6 +93,9 @@ const en = {
     homework: 'HOMEWORK',
     notice: 'NOTICE',
     tapToAdd: 'Tap an empty slot to add a class',
+    locked: 'Schedule locked · tap the lock to edit it',
+    lock: 'Lock schedule',
+    unlock: 'Unlock schedule',
   },
   block: {
     newTitle: 'New class',
