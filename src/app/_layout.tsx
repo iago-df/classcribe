@@ -27,6 +27,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="subject/[id]" />
         <Stack.Screen name="lecture/[id]" />
+        <Stack.Screen name="file/[id]" />
         {/* these two draw their own bottom sheet over the screen below */}
         <Stack.Screen name="block" options={sheet} />
         <Stack.Screen name="settings" options={sheet} />
