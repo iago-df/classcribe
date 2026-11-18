@@ -22,12 +22,12 @@
 <p align="center">
   <a href="https://github.com/iago-df/classcribe/releases/latest/download/Classcribe.apk"><b>⬇ Download for Android</b></a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/iago-df/classcribe/releases/download/v0.1.0/Classcribe-promo.mp4">▶ Watch the promo video</a>
+  <a href="https://iago-df.github.io/classcribe/">▶ Watch the promo video</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/iago-df/classcribe/releases/download/v0.1.0/Classcribe-promo.mp4"><img src="docs/teaser.webp" width="860" alt="Classcribe promo video"></a><br>
-  <sub>▶ <a href="https://github.com/iago-df/classcribe/releases/download/v0.1.0/Classcribe-promo.mp4">Watch the full promo video (45 s, with sound)</a></sub>
+  <a href="https://iago-df.github.io/classcribe/"><img src="docs/teaser.webp" width="860" alt="Classcribe promo video"></a><br>
+  <sub>▶ <a href="https://iago-df.github.io/classcribe/">Watch the full promo video (45 s, with sound)</a></sub>
 </p>
 
 <p align="center">
