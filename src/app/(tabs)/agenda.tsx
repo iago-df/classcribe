@@ -74,6 +74,7 @@ export default function AgendaScreen() {
                   {shownSubject && (
                     <T weight="semibold" style={{ fontSize: 16, marginTop: 3 }}>
                       {shownSubject.name}
+                      {shown?.kind === 'practice' ? ` · ${t('block.practice')}` : ''}
                     </T>
                   )}
                 </View>
