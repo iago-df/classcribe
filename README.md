@@ -77,8 +77,8 @@ You can either listen or write, not both. Classcribe records the lecture, transc
   </tr>
   <tr>
     <td valign="top">
-      <h3>Subjects and units</h3>
-      One card per subject; subjects with fresh notes turn black. Inside, you split the lectures into your own units. New lectures land in the right unit on their own when the AI can tell, and you can always move them with a long press.
+      <h3>Units</h3>
+      Inside a subject, you split the lectures into your own units. New lectures land in the right unit on their own when the AI can tell, and you can always move them with a long press.
     </td>
     <td valign="top">
       <h3>Syllabus</h3>
@@ -111,6 +111,20 @@ You can either listen or write, not both. Classcribe records the lecture, transc
     <td valign="top">
       <h3>Schedule</h3>
       Build your week once: tap an empty slot and fill in the class. Theory and practice can have different shades, and practice classes carry a <b>P</b>. When the semester is set, lock it so nothing changes by accident.
+    </td>
+  </tr>
+  <tr>
+    <td><img src="docs/subjects.jpg" alt="Subjects"></td>
+    <td><img src="docs/settings.jpg" alt="Settings"></td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h3>Subjects</h3>
+      One card per subject, made from your schedule. A subject turns black with a <b>● NEW</b> tag when it has notes you have not opened yet, and goes back to white once you read them.
+    </td>
+    <td valign="top">
+      <h3>Settings</h3>
+      Language, and how your lectures are processed: <b>Cloud APIs</b> with your own Anthropic and OpenAI keys (the default), or <b>My server</b>, a computer of yours that does it with your Claude Code account. Switch whenever you want. See <a href="#choose-how-lectures-are-processed">how they compare</a>.
     </td>
   </tr>
 </table>
