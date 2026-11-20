@@ -712,6 +712,11 @@ class Handler(BaseHTTPRequestHandler):
             os.replace(part, target)
             return True
         except OSError:
+            # a cut or timed out upload shouldn't leave half a file behind
+            try:
+                os.remove(part)
+            except OSError:
+                pass
             return False
 
     def do_DELETE(self):
