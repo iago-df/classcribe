@@ -4,7 +4,7 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { Platform } from 'react-native';
 import { z } from 'zod';
 import type { AlertKind, NoteBlock, Segment, SyllabusFile } from '../../types';
-import { clock } from '../time';
+import { clock, isoDay } from '../time';
 import { readBase64, readText } from '../files';
 
 export const MODEL = 'claude-opus-5-5';
@@ -118,7 +118,7 @@ export async function writeNotes(opts: {
   const docs = await syllabusBlocks(opts.syllabus);
   const transcript = opts.segments.map((s) => `[${clock(s.start)}] ${s.text}`).join('\n');
   const d = opts.lectureDate;
-  const dateLine = `${d.toISOString().slice(0, 10)} (${d.toLocaleDateString('en-US', { weekday: 'long' })})`;
+  const dateLine = `${isoDay(d)} (${d.toLocaleDateString('en-US', { weekday: 'long' })})`;
 
   const stream = client(opts.apiKey).beta.messages.stream({
     model: MODEL,

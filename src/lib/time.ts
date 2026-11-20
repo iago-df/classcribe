@@ -11,6 +11,9 @@ export function clock(totalSec: number) {
   return `${pad2(s / 3600)}:${pad2((s / 60) % 60)}:${pad2(s % 60)}`;
 }
 
+/** the local calendar day as YYYY-MM-DD (toISOString would give the UTC day) */
+export const isoDay = (d = new Date()) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
 /** monday = 0 … sunday = 6 */
 export const weekday = (d = new Date()) => (d.getDay() + 6) % 7;
 export const minutesOfDay = (d = new Date()) => d.getHours() * 60 + d.getMinutes();
