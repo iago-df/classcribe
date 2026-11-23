@@ -4,7 +4,7 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { Platform } from 'react-native';
 import { z } from 'zod';
 import type { AlertKind, NoteBlock, Segment, SyllabusFile } from '../../types';
-import { clock } from '../time';
+import { clock, isoDay } from '../time';
 import { readBase64, readText } from '../files';
 
 export const MODEL = 'claude-opus-5-5';
@@ -86,20 +86,24 @@ function client(apiKey: string) {
 }
 
 async function syllabusBlocks(files: SyllabusFile[]): Promise<Anthropic.Beta.BetaContentBlockParam[]> {
-  const out: Anthropic.Beta.BetaContentBlockParam[] = [];
-  for (const f of files) {
-    try {
-      if (f.mimeType === 'application/pdf') {
-        out.push({ type: 'document', title: f.name, source: { type: 'base64', media_type: 'application/pdf', data: await readBase64(f.uri) } });
-      } else if (/^image\/(jpeg|png|webp|gif)$/.test(f.mimeType)) {
-        out.push({ type: 'image', source: { type: 'base64', media_type: f.mimeType as 'image/png', data: await readBase64(f.uri) } });
-      } else if (f.mimeType.startsWith('text/')) {
-        out.push({ type: 'document', title: f.name, source: { type: 'text', media_type: 'text/plain', data: await readText(f.uri) } });
+  // read every file at once instead of one after another; the order of the blocks is kept
+  const read = await Promise.all(
+    files.map(async (f): Promise<Anthropic.Beta.BetaContentBlockParam | null> => {
+      try {
+        if (f.mimeType === 'application/pdf') {
+          return { type: 'document', title: f.name, source: { type: 'base64', media_type: 'application/pdf', data: await readBase64(f.uri) } };
+        } else if (/^image\/(jpeg|png|webp|gif)$/.test(f.mimeType)) {
+          return { type: 'image', source: { type: 'base64', media_type: f.mimeType as 'image/png', data: await readBase64(f.uri) } };
+        } else if (f.mimeType.startsWith('text/')) {
+          return { type: 'document', title: f.name, source: { type: 'text', media_type: 'text/plain', data: await readText(f.uri) } };
+        }
+      } catch {
+        // an unreadable file shouldn't block the notes
       }
-    } catch {
-      // an unreadable file shouldn't block the notes
-    }
-  }
+      return null;
+    }),
+  );
+  const out = read.filter((b): b is Anthropic.Beta.BetaContentBlockParam => b !== null);
   // the syllabus is the same for every lecture of a subject, so cache it
   const last = out[out.length - 1];
   if (last && (last.type === 'document' || last.type === 'image')) last.cache_control = { type: 'ephemeral' };
@@ -118,7 +122,7 @@ export async function writeNotes(opts: {
   const docs = await syllabusBlocks(opts.syllabus);
   const transcript = opts.segments.map((s) => `[${clock(s.start)}] ${s.text}`).join('\n');
   const d = opts.lectureDate;
-  const dateLine = `${d.toISOString().slice(0, 10)} (${d.toLocaleDateString('en-US', { weekday: 'long' })})`;
+  const dateLine = `${isoDay(d)} (${d.toLocaleDateString('en-US', { weekday: 'long' })})`;
 
   const stream = client(opts.apiKey).beta.messages.stream({
     model: MODEL,

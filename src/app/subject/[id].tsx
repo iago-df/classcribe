@@ -4,12 +4,19 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useStore } from '../../store';
 import { useT } from '../../i18n';
 import { colors, fonts } from '../../theme';
-import { removeFile } from '../../lib/files';
+import { recordingUri, removeFile } from '../../lib/files';
 import { confirm } from '../../lib/confirm';
 import LectureRow from '../../components/LectureRow';
 import { SyllabusList, SyllabusOverlay, useSyllabus } from '../../components/Syllabus';
 import { BackLink, Button, Empty, H1, Kicker, Pad, Row, Screen, Segmented, Sheet, T } from '../../components/ui';
 import type { Lecture, Unit } from '../../types';
+
+/** a lecture's audio, also where early builds really left it (see recordingUri) */
+function removeAudio(l: Lecture) {
+  const moved = recordingUri(l.id, l.audioUri);
+  removeFile(l.audioUri);
+  if (moved && moved !== l.audioUri) removeFile(moved);
+}
 
 export default function SubjectScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -209,7 +216,7 @@ export default function SubjectScreen() {
             onPress={() =>
               moving &&
               confirm(t('lecture.deleteLecture'), t('lecture.deleteLectureMsg'), () => {
-                removeFile(moving.audioUri);
+                removeAudio(moving);
                 removeLecture(moving.id);
                 setMoving(null);
               })
@@ -247,7 +254,7 @@ export default function SubjectScreen() {
                     t('subjects.deleteSubject'),
                     t('subjects.deleteSubjectMsg'),
                     () => {
-                      lectures.forEach((l) => removeFile(l.audioUri));
+                      lectures.forEach(removeAudio);
                       files.forEach((f) => removeFile(f.uri));
                       setMenu(false);
                       removeSubject(subject.id);

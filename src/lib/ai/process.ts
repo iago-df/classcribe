@@ -3,6 +3,7 @@ import { useStore, uid } from '../../store';
 import { translate } from '../../i18n';
 import { getKey } from '../keys';
 import { fileSize, recordingUri } from '../files';
+import { isoDay } from '../time';
 import { MAX_UPLOAD, TranscriptionError, transcribe } from './transcribe';
 import { NotesSchema, RefusalError, toNotesResult, writeNotes, type NotesResult } from './notes';
 import {
@@ -175,7 +176,7 @@ async function submit(cfg: ServerConfig, lecture: Lecture) {
 
   const job = await createJob(cfg, {
     subject: subject?.name ?? '',
-    lecture_date: date.toISOString().slice(0, 10),
+    lecture_date: isoDay(date),
     weekday: date.toLocaleDateString('en-US', { weekday: 'long' }),
     units: units.map((u) => u.name),
     transcript: hasTranscript ? lecture.transcript! : null,
